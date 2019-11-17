@@ -2,6 +2,7 @@ import operator
 
 import numpy
 import pytest
+import torch
 
 from torch_complex.tensor import ComplexTensor
 
@@ -85,3 +86,19 @@ def test_mean():
     y = t1.mean()
     y = y.numpy()
     numpy.testing.assert_allclose(x, y)
+
+
+@pytest.mark.parametrize('shape', [(2, 2), (4, 4), (8, 8), (2, 4, 4), (10, 5, 5), (100, 10, 10), (1000, 20, 20)])
+def test_symeig(shape):
+    Z = ComplexTensor(torch.rand(*shape), torch.rand(*shape))
+    Z = Z + Z.conj().transpose(-1, -2)
+    eigvals_torch, eigvecs_torch = Z.symeig(eigenvectors=True)
+    eigvals_numpy, eigvecs_numpy = numpy.linalg.eigh(Z.numpy())
+
+    # Check if eigenvalues calculated by numpy and torch_complex are close to each other.
+    # However, the eigenvectors calculated by these two methods are not necessarily similar,
+    #   due to arbitrary phase rotations (see http://numpy-discussion.10968.n7.nabble.com/One-question-about-the-numpy-linalg-eig-routine-td5392.html)
+    numpy.testing.assert_allclose(eigvals_torch.numpy(), eigvals_numpy, atol=1e-5)
+    # Validate (eigenvalue, eigenvector) pairs
+    numpy.testing.assert_allclose(numpy.matmul(Z.numpy(), eigvecs_torch.numpy()),
+                                  eigvecs_torch.numpy() * eigvals_torch.unsqueeze(-2).numpy(), atol=1e-5)

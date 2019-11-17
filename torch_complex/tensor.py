@@ -1,8 +1,11 @@
+from distutils.version import LooseVersion
 import numbers
 from typing import Union, List
 
 import numpy
 import torch
+
+is_torch_1_2_plus = LooseVersion(torch.__version__) >= LooseVersion('1.2')
 
 
 class ComplexTensor:
@@ -555,6 +558,47 @@ class ComplexTensor:
     def sum(self, *args, **kwargs) -> 'ComplexTensor':
         return ComplexTensor(self.real.sum(*args, **kwargs),
                              self.imag.sum(*args, **kwargs),)
+
+    def symeig(self, eigenvectors=False, upper=True) -> ('ComplexTensor', 'ComplexTensor'):
+        '''This function returns eigenvalues and eigenvectors of a complex Hermitian matrix.
+
+        reference: https://www.cnblogs.com/xingshansi/p/7735016.html
+
+        This function calculates all eigenvalues (and vectors) of this tensor
+        such that :math:`\\text{self} = V \\text{diag}(e) V^T`.
+
+        The boolean argument :attr:`eigenvectors` defines computation of
+        both eigenvectors and eigenvalues or eigenvalues only.
+
+        If it is ``False``, only eigenvalues are computed. If it is ``True``,
+        both eigenvalues and eigenvectors are computed.
+
+        Since the input matrix :attr:`input` is supposed to be Hermitian,
+        only the upper triangular portion is used by default.
+
+        If :attr:`upper` is ``False``, then lower triangular portion is used.
+
+        Note that the returned eigenvalues are real since the input is Hermitian.
+        '''
+        if not is_torch_1_2_plus and self.dim() > 2:
+            raise RuntimeError('PyTorch 1.2- does not support batch processing for EVD')
+        # ComplexTensor: (..., C, C)
+        dim_C = self.size(-1)
+        #==== convert the Hermitian matrix to a real symmetric matrix
+        # torch.Tensor: (.., 2C, 2C)
+        C = torch.cat((torch.cat((self.real, -self.imag), dim=-1),
+                    torch.cat((self.imag, self.real), dim=-1)), dim=-2)
+        # eigenvals: torch.Tensor: (..., 2C)
+        # eigenvecs: torch.Tensor: (..., 2C, 2C)
+        eigenvals, eigenvecs = torch.symeig(C, eigenvectors=eigenvectors, upper=upper)
+        #==== remove redundant elements (columns)
+        # torch.Tensor: (..., C)
+        eigenvals = eigenvals[..., ::2]
+        # torch.Tensor: (..., 2C, C)
+        eigenvecs = eigenvecs[..., ::2]
+        # ComplexTensor: (..., C, C)
+        eigenvecs = ComplexTensor(eigenvecs[..., :dim_C, :], eigenvecs[..., dim_C:, :])
+        return eigenvals, eigenvecs
 
     def take(self, indices) -> 'ComplexTensor':
         return ComplexTensor(self.real.take(indices), self.imag.take(indices))
