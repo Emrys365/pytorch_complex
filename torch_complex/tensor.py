@@ -237,8 +237,10 @@ class ComplexTensor:
     def angle(self) -> torch.Tensor:
         return torch.atan2(self.imag, self.real)
 
-    def backward(self) -> None:
-        self.real.backward()
+    def backward(self, retain_graph_real=False) -> None:
+        '''Please set `retain_graph_real` to True when self.symeig() is used in the forward pass
+        '''
+        self.real.backward(retain_graph=retain_graph_real)
         self.imag.backward()
 
     def byte(self) -> 'ComplexTensor':
