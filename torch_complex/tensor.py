@@ -564,7 +564,9 @@ class ComplexTensor:
     def symeig(self, eigenvectors=False, upper=True) -> ('ComplexTensor', 'ComplexTensor'):
         '''This function returns eigenvalues and eigenvectors of a complex Hermitian matrix.
 
-        reference: https://www.cnblogs.com/xingshansi/p/7735016.html
+        references:
+            [1] 桂。.复数矩阵分解的拆解思路（矩阵求逆/特征值分解）. 博客园. https://www.cnblogs.com/xingshansi/p/7735016.html.
+            [2] Wilkinson, James Hardy. The algebraic eigenvalue problem. Vol. 662. Clarendon: Oxford, 1965.
 
         This function calculates all eigenvalues (and vectors) of this tensor
         such that :math:`\\text{self} = V \\text{diag}(e) V^T`.
