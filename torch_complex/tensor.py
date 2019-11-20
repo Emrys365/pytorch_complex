@@ -553,7 +553,7 @@ class ComplexTensor:
     def sqrt(self) -> 'ComplexTensor':
         return self ** 0.5
 
-    def squeeze(self, dim) -> 'ComplexTensor':
+    def squeeze(self, dim=None) -> 'ComplexTensor':
         return ComplexTensor(self.real.squeeze(dim),
                              self.imag.squeeze(dim))
 
