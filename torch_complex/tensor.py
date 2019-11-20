@@ -554,8 +554,11 @@ class ComplexTensor:
         return self ** 0.5
 
     def squeeze(self, dim=None) -> 'ComplexTensor':
-        return ComplexTensor(self.real.squeeze(dim),
-                             self.imag.squeeze(dim))
+        if dim is None:
+            return ComplexTensor(self.real.squeeze(), self.imag.squeeze())
+        else:
+            return ComplexTensor(self.real.squeeze(dim),
+                                self.imag.squeeze(dim))
 
     def sum(self, *args, **kwargs) -> 'ComplexTensor':
         return ComplexTensor(self.real.sum(*args, **kwargs),
@@ -565,8 +568,9 @@ class ComplexTensor:
         '''This function returns eigenvalues and eigenvectors of a complex Hermitian matrix.
 
         references:
-            [1] 桂。.复数矩阵分解的拆解思路（矩阵求逆/特征值分解）. 博客园. https://www.cnblogs.com/xingshansi/p/7735016.html.
-            [2] Wilkinson, James Hardy. The algebraic eigenvalue problem. Vol. 662. Clarendon: Oxford, 1965.
+            [1] https://www.cnblogs.com/xingshansi/p/7735016.html.
+            [2] Wilkinson, James Hardy. The algebraic eigenvalue problem.
+                Vol. 662. Clarendon: Oxford, 1965.
 
         This function calculates all eigenvalues (and vectors) of this tensor
         such that :math:`\\text{self} = V \\text{diag}(e) V^T`.
