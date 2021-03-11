@@ -3,10 +3,19 @@ sudo: false
 language: python
 python:
     - "3.6"
+    - "3.7"
+env:
+    - TH_VERSION=1.0
+    - TH_VERSION=1.1
+    - TH_VERSION=1.2
+    - TH_VERSION=1.3
+    - TH_VERSION=1.4
+    - TH_VERSION=1.5
+    - TH_VERSION=1.6
 
 install:
     - python --version
-    - pip install torch
+    - pip install torch==${TH_VERSION}
     - pip install -e .
     - pip install --upgrade pycodestyle flake8 codecov
     - pycodestyle --version
